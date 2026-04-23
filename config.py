@@ -1,0 +1,4 @@
+import os
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8758962842:AAFSeltP_jZJ32nWGIkPMeLn8O9YeVwc4Rs")
+ADMIN_ID = 841926956

@@ -181,10 +181,7 @@ async def take_order(call: CallbackQuery):
 
     await call.answer(f"✅ Ты взял заказ #{order_number}!", show_alert=True)
 
-    await call.message.answer(
-        f"🚴 Ты взял заказ #{order_number}!\n\n"
-        f"📝 {order['info']}\n\n"
-        f"Удачной доставки! 💪"
+    
     )
 
     # Уведомление админу

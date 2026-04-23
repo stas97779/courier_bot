@@ -181,7 +181,7 @@ async def take_order(call: CallbackQuery):
 
 
     
-    )
+    
 
     # Уведомление админу
     courier_name = f"@{order['courier_username']}" if call.from_user.username else order['courier_username']

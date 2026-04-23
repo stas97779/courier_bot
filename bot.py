@@ -54,10 +54,11 @@ def confirm_keyboard():
     builder.adjust(2)
     return builder.as_markup()
 
-def orders_actions_keyboard():
-    """Кнопки под списком заказов"""
+def orders_actions_keyboard(is_admin=False):
     builder = InlineKeyboardBuilder()
     builder.button(text="📢 Опубликовать в группу", callback_data="publish_group")
+    if is_admin:
+        builder.button(text="🗑 Очистить выполненные", callback_data="clear_done")
     builder.adjust(1)
     return builder.as_markup()
 
@@ -120,7 +121,7 @@ async def order_published(call: CallbackQuery, state: FSMContext):
     # Показываем список с кнопками
     await call.message.answer(
         build_orders_text(),
-        reply_markup=orders_actions_keyboard()
+        reply_markup=orders_actions_keyboard(call.from_user.id == ADMIN_ID)
     )
 
 @dp.callback_query(OrderState.confirming, F.data == "confirm_no")
@@ -132,11 +133,11 @@ async def order_cancelled(call: CallbackQuery, state: FSMContext):
 
 @dp.message(F.text == "/orders")
 async def show_orders(message: Message):
+    is_admin = message.from_user.id == ADMIN_ID
     text = build_orders_text()
+    await message.answer(text, reply_markup=orders_actions_keyboard(is_admin))
+
     keyboard = build_orders_keyboard()
-
-    await message.answer(text, reply_markup=orders_actions_keyboard())
-
     if keyboard:
         await message.answer(
             "👇 Выбери заказ чтобы взять его:",
@@ -200,7 +201,25 @@ async def take_order(call: CallbackQuery):
         await call.message.edit_text(text, reply_markup=keyboard)
     except Exception:
         pass
+@dp.callback_query(F.data == "clear_done")
+async def clear_done_orders(call: CallbackQuery):
+    if call.from_user.id != ADMIN_ID:
+        await call.answer("⛔ У вас нет прав.", show_alert=True)
+        return
 
+    taken = [o for o in orders if o["status"] == "taken"]
+    if not taken:
+        await call.answer("⚠️ Нет выполненных заказов.", show_alert=True)
+        return
+
+    for o in taken:
+        orders.remove(o)
+
+    await call.answer(f"✅ Удалено {len(taken)} выполненных заказов.", show_alert=True)
+    await call.message.edit_text(
+        build_orders_text(),
+        reply_markup=orders_actions_keyboard(True)
+    )
 # --- Запуск ---
 async def main():
     await dp.start_polling(bot)

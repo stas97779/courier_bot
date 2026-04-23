@@ -179,7 +179,6 @@ async def take_order(call: CallbackQuery):
     order["courier_id"] = call.from_user.id
     order["courier_username"] = call.from_user.username or call.from_user.first_name
 
-    await call.answer(f"✅ Ты взял заказ #{order_number}!", show_alert=True)
 
     
     )
